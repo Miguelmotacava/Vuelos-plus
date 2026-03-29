@@ -56,16 +56,19 @@ Se han preparado 4 scripts dedicados para cubrir las 4 consultas clave requerida
 Permite observar todos los campos de un aeropuerto por defecto, o definir qué familias de columnas en particular se quieren ver (ahorrando tiempo de red).
 
 ```powershell
-python src\query1_aeropuertos.py ATL -c info:city info:state
+python query1_aeropuertos.py ATL
 ```
 **Output:**
 ```text
 =======================================================
-Q1: Detalle del Aeropuerto ATL
-Proyectando columnas: ['info:city', 'info:state']
+Q1 - Detalle del Aeropuerto ATL
 =======================================================
-  info:city: Atlanta
-  info:state: GA
+  Aeropuerto -> William B Hartsfield-Atlanta Intl
+  Ciudad      -> Atlanta
+  País        -> USA
+  Latitud     -> 33.64044444
+  Longitud    -> -84.42694444
+  Estado      -> GA
 =======================================================
 ```
 
@@ -73,53 +76,128 @@ Proyectando columnas: ['info:city', 'info:state']
 Consulta los vuelos de una fecha (ej. todo el día 1 de Enero de 2008 o todo el mes enviando sólo `200801`). Soporta límite visual (`-l`) y filtro local por IATA origen (`-o`).
 
 ```powershell
-python src\query2_vuelos.py 20080101 -o ATL -l 2
+python query2_vuelos.py --year 2008 --month 01 --day 15 --origin ATL
 ```
 **Output:**
 ```text
-=======================================================
-Q2: Vuelos para la fecha/mes '20080101'
-Filtro aplicado -> Origen: ATL
-=======================================================
- ------------------------------------
-  RowKey: 20080101_ATL_MCO_DL_1234
-    Origen: ATL -> Destino: MCO
-    Hora Salida: 08:30 | Llegada: 10:15
-    Vuelo: 1234 | Aeronave: N12345
-    Distancia: 400.0 millas
- ------------------------------------
-  RowKey: 20080101_ATL_PHL_FL_888
-    Origen: ATL -> Destino: PHL
-    Hora Salida: 14:10 | Llegada: 16:20
-    Vuelo: 888 | Aeronave: N90989
-    Distancia: 666.0 millas
+======================================================================
+Q2 - Vuelos mostrados para los siguientes filtros aplicados:
+  -> Año   : 2008
+  -> Mes   : 01 - Enero
+  -> Día   : 15
+  -> Origen: ATL
+======================================================================
 
-Mostrando 2 registro(s) (Límite visual: 2).
-=======================================================
+ [Vuelo: 4795] | [Aeronave: N881AS]
+   Ruta      : ATL -> ABE
+   Tiempos   : 14:53 (Salida) / 16:47 (Llegada)
+   Distancia : 692 millas (~1113.43 km)
+   RowKey    : 20080115_ATL_ABE_EV_4795
+------------------------------------------------------------
+
+ [Vuelo: 5184] | [Aeronave: N420CA]
+   Ruta      : ATL -> ABE
+   Tiempos   : 21:17 (Salida) / 23:19 (Llegada)
+   Distancia : 692 millas (~1113.43 km)
+   RowKey    : 20080115_ATL_ABE_OH_5184
+------------------------------------------------------------
+
+ [Vuelo: 1433] | [Aeronave: N915DL]
+   Ruta      : ATL -> ABQ
+   Tiempos   : 11:18 (Salida) / 12:46 (Llegada)
+   Distancia : 1269 millas (~2041.82 km)
+   RowKey    : 20080115_ATL_ABQ_DL_1433
+------------------------------------------------------------
+
+ [Vuelo: 1540] | [Aeronave: N930DL]
+   Ruta      : ATL -> ABQ
+   Tiempos   : 21:36 (Salida) / 23:12 (Llegada)
+   Distancia : 1269 millas (~2041.82 km)
+   RowKey    : 20080115_ATL_ABQ_DL_1540
+------------------------------------------------------------
+
+ [Vuelo: 567] | [Aeronave: N980DL]
+   Ruta      : ATL -> ABQ
+   Tiempos   : 17:36 (Salida) / 19:08 (Llegada)
+   Distancia : 1269 millas (~2041.82 km)
+   RowKey    : 20080115_ATL_ABQ_DL_567
+------------------------------------------------------------
+
+ [Vuelo: 4361] | [Aeronave: N849AS]
+   Ruta      : ATL -> ABY
+   Tiempos   : 22:16 (Salida) / 22:56 (Llegada)
+   Distancia : 146 millas (~234.91 km)
+   RowKey    : 20080115_ATL_ABY_EV_4361
+------------------------------------------------------------
+
+ [Vuelo: 4468] | [Aeronave: N936EV]
+   Ruta      : ATL -> ABY
+   Tiempos   : 09:19 (Salida) / 10:13 (Llegada)
+   Distancia : 146 millas (~234.91 km)
+   RowKey    : 20080115_ATL_ABY_EV_4468
+------------------------------------------------------------
+
+ [Vuelo: 4689] | [Aeronave: N848AS]
+   Ruta      : ATL -> ABY
+   Tiempos   : 16:01 (Salida) / 16:47 (Llegada)
+   Distancia : 146 millas (~234.91 km)
+   RowKey    : 20080115_ATL_ABY_EV_4689
+------------------------------------------------------------
+
+ [Vuelo: 4792] | [Aeronave: N839AS]
+   Ruta      : ATL -> ACY
+   Tiempos   : 20:47 (Salida) / 22:32 (Llegada)
+   Distancia : 678 millas (~1090.9 km)
+   RowKey    : 20080115_ATL_ACY_EV_4792
+------------------------------------------------------------
+
+ [Vuelo: 4362] | [Aeronave: N929EV]
+   Ruta      : ATL -> AEX
+   Tiempos   : 10:24 (Salida) / 11:08 (Llegada)
+   Distancia : 500 millas (~804.5 km)
+   RowKey    : 20080115_ATL_AEX_EV_4362
+------------------------------------------------------------
+
+Total: 10 registros mostrados.
 ```
 
 ### Q3: Inteligencia y Estadísticas de Ruta
 Obtiene la tabla pre-agregada analítica del ETL ordenando a la aerolínea con mayor volumen de vuelos de primero.
 
 ```powershell
-python src\query3_rutas.py ATL JFK
+python query3_rutas.py ATL JFK
 ```
 **Output:**
 ```text
 =======================================================
-Q3: Estadísticas Analíticas de Ruta ATL-JFK
+Q3 - Estadísticas Analíticas de Ruta ATL-JFK
 =======================================================
+
+Ruta: ATL -> JFK
+
+Distancia Estimada (Geográfica): 1221.73 km
+
+--- ESTADÍSTICA GLOBAL DE LA RUTA ---
+  Total de Aerolíneas Operando: 2
+  Total de Vuelos en la Ruta:   626
+  Promedio AirTime General:     104.36 mins
+  Promedio Retraso Salida:      14.05 mins
+  Promedio Retraso Llegada:     11.87 mins
+-------------------------------------
+
+Desglose por Aerolínea:
   Aerolínea: Delta Air Lines Inc. (DL)
-      Frecuencia (Vuelos operados): 120
-      Duración Promedio: 140.5 mins
-      Retraso Salida: 15.2 mins
-      Retraso Llegada: 12.1 mins
+      Frecuencia (Vuelos operados): 507
+      Duración Promedio: 104.7 mins
+      Retraso Salida:    11.17 mins
+      Retraso Llegada:   9.12 mins
 
   Aerolínea: Comair Inc. (OH)
-      Frecuencia (Vuelos operados): 40
-      Duración Promedio: 144.3 mins
-      Retraso Salida: 24.1 mins
-      ...
+      Frecuencia (Vuelos operados): 119
+      Duración Promedio: 102.95 mins
+      Retraso Salida:    26.29 mins
+      Retraso Llegada:   23.61 mins
+
 ```
 
 ### Q4: Auditoría Inteligente de DB
@@ -133,14 +211,15 @@ python src\query4_conteo.py
 Iniciando barrido de tablas. Para la tabla 'vuelos' esto puede tardar unos minutos...
 
 =======================================================
-Q4: Auditoría de Conteo de registros en HBase
-    (usando KeyOnlyFilter() para evitar transferir valores)
+Q4 - Auditoría de Conteo de registros en HBase
+(usando KeyOnlyFilter() para evitar transferir valores)
 =======================================================
+
 > Tabla 'aeropuertos': 3.376 registros almacenados.
 > Tabla 'companias': 1.490 registros almacenados.
 > Tabla 'rutas': 4.981 registros almacenados.
 > Tabla 'vuelos': 2.389.212 registros almacenados.
-=======================================================
+
 ```
 
 ---
@@ -163,6 +242,27 @@ streamlit run src\streamlit_app.py
 A continuación se muestran las capturas de cómo se vería el streamlit ejecutado:
 
 **Q1 - Detalles de los aeropuertos**
-<img width="1918" height="1071" alt="image" src="https://github.com/user-attachments/assets/a2b39e66-4aae-47eb-b4d2-32d43a3e048f" />
 
-**Q2 - 
+<img width="1916" height="1075" alt="image" src="https://github.com/user-attachments/assets/6a2cb7e8-420c-4b39-87f6-7a6a16ec4da2" />
+
+
+
+**Q2 - Q2 - Seguimiento de Vuelos**
+
+
+
+
+
+**Q3 - Q3 - Analisis Estadistico de Rutas**
+
+
+
+
+
+**Q4 - Q4 - Auditoria de Datos HBase**
+
+<img width="1913" height="1079" alt="image" src="https://github.com/user-attachments/assets/380cba00-b9eb-4086-983d-ae549de94b74" />
+
+
+
+
