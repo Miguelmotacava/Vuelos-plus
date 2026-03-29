@@ -1,0 +1,32 @@
+# Entornos virtuales
+env_hbase/
+venv/
+.venv/
+env/
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Datos masivos (evitar subir al repo)
+data/
+*.csv
+*.csv.bz2
+*.json
+
+# Archivos auxiliares de LaTeX (se pueden recrear)
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# SO (Mac/Windows)
+.DS_Store
+Thumbs.db
