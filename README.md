@@ -124,9 +124,9 @@ Q4: Auditoría de Conteo de registros en HBase
     (usando KeyOnlyFilter() para evitar transferir valores)
 =======================================================
 > Tabla 'aeropuertos': 3.376 registros almacenados.
-> Tabla 'companias': 1.491 registros almacenados.
+> Tabla 'companias': 1.490 registros almacenados.
 > Tabla 'rutas': 4.981 registros almacenados.
-> Tabla 'vuelos': 50.000 registros almacenados.
+> Tabla 'vuelos': 2.389.212 registros almacenados.
 =======================================================
 ```
 
