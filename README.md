@@ -159,3 +159,10 @@ streamlit run src\streamlit_app.py
 2. **Control Interactivo**: En la Pestaña Rutas (Q3), el selector de destino está condicionado y encriptado dinámicamente; si seleccionas un aeropuerto que no tiene destinos operados registrados en la base de datos, las opciones de "destinos vacíos" se bloquean para evitar peticiones infructuosas.
 3. **Conversión y Formateo Automático**: Genera duraciones precisas extraídas a partir de horarios crudos y convierte distancias métricas de Millas a Kms al instante.
 4. **Capas Geográficas 3D (PyDeck)**: Adicionalmente, el panel carga las coordenadas espaciales `Lat` y `Long` en HBase, e imperceptivamente traza espectaculares **arcos curvos tridimensionales** para ilustrar masivamente todos los vuelos interceptados en Q2 sobre un mapamundi.
+
+A continuación se muestran las capturas de cómo se vería el streamlit ejecutado:
+
+**Q1 - Detalles de los aeropuertos**
+<img width="1918" height="1071" alt="image" src="https://github.com/user-attachments/assets/a2b39e66-4aae-47eb-b4d2-32d43a3e048f" />
+
+**Q2 - 
