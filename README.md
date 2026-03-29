@@ -282,8 +282,6 @@ Para la reproducción de este proyecto y consulta técnica, se pueden utilizar l
 
 ---
 
----
-
 ## Autores y Créditos
 
 Este proyecto ha sido desarrollado como parte de la formación en la asignatura de **Bases de Datos NoSQL** por:
