@@ -1,4 +1,5 @@
-# HBase Flight Data Dashboard
+# Vuelos +
+### Un análisis de los vuelos del primer cuatrimestre de 2008 en EE.UU
 
 Este proyecto consiste en una canalización de datos interactiva (*ETL*, consultas por terminal y visualización) diseñada sobre una base de datos NoSQL columnar (**Apache HBase**). 
 Su objetivo es almacenar, procesar y consultar de forma ultra-rápida y estructurada millones de registros de vuelos de aerolíneas usando el dataset histórico *Airline On-Time Performance*.
