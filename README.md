@@ -243,7 +243,9 @@ A continuación se muestran las capturas de cómo se vería el streamlit ejecuta
 
 **Q1 - Detalles de los aeropuertos**
 
-<img width="1916" height="1075" alt="image" src="https://github.com/user-attachments/assets/6a2cb7e8-420c-4b39-87f6-7a6a16ec4da2" />
+https://github.com/user-attachments/assets/6635e5e5-6761-4a80-a53b-869b8a3b2c79
+
+
 
 
 
