@@ -12,7 +12,6 @@ El repositorio está organizado de la siguiente manera:
 
 - **`src/`**: Contiene el núcleo de la lógica en Python (ETL, scripts de consulta CLI y la aplicación Streamlit).
 - **`data/`**: Directorio para los archivos CSV (Airports, Carriers y Vuelos). *Nota: Los archivos pesados están omitidos en Git.*
-- **`docs/`**: Documentación técnica, enunciados de la práctica y material teórico sobre Apache HBase.
 - **`informe/`**: Contiene el reporte final de la práctica en formato PDF y sus fuentes LaTeX.
 - **`docker-compose.yml`**: Configuración para levantar el ecosistema de HBase, Thrift y Zookeeper mediante contenedores.
 - **`requirements.txt`**: Listado de dependencias de Python necesarias para ejecutar el proyecto.
@@ -208,7 +207,7 @@ Tiempo de ejecución: 0.0288 segundos
 Este script realiza un conteo asombrosamente rápido incluso con millones de datos. Inyecta subrutinas nativas de Java dentro de HBase (`KeyOnlyFilter()`) de manera que **los datos del vuelo no viajan por la red**, devolviendo exclusivamente una señal al servidor intermedio disminuyendo los tiempos en gran medida.
 
 ```powershell
-python src\query4_conteo.py
+python query4_conteo.py
 ```
 **Output:**
 ```text
