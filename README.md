@@ -24,7 +24,7 @@ El repositorio está organizado de la siguiente manera:
 2. **HBase Server** ejecutándose localmente (por ejemplo, vía contenedor Docker) y exponiendo el puerto `9090` (Thrift).
 3. **Entorno Virtual**: Activa tu entorno virtual (`env_hbase` en Windows).
    ```powershell
-   ..\env_hbase\Scripts\activate.bat
+   ..\env_hbase\Scripts\activate
    ```
 4. **Instalar dependencias**:
    ```powershell
