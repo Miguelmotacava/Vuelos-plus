@@ -252,13 +252,10 @@ A continuación se muestran las capturas de cómo se vería el streamlit ejecuta
 
 https://github.com/user-attachments/assets/6635e5e5-6761-4a80-a53b-869b8a3b2c79
 
-<<<<<<< HEAD
-
 
 **Q2 - Q2 - Seguimiento de Vuelos**
 
 https://github.com/user-attachments/assets/80cc8d34-df56-4bf0-970e-71098e7fd67b
-
 
 
 **Q3 - Q3 - Analisis Estadistico de Rutas**
@@ -266,20 +263,10 @@ https://github.com/user-attachments/assets/80cc8d34-df56-4bf0-970e-71098e7fd67b
 https://github.com/user-attachments/assets/51f8c6c2-df8a-4d67-9137-3c43c2fb54f0
 
 
-
 **Q4 - Q4 - Auditoria de Datos HBase**
-=======
-**Q2 - Seguimiento de Vuelos**
 
 https://github.com/user-attachments/assets/80cc8d34-df56-4bf0-970e-71098e7fd67b
 
-**Q3 - Analisis Estadistico de Rutas**
-
-https://github.com/user-attachments/assets/51f8c6c2-df8a-4d67-9137-3c43c2fb54f0
-
-**Q4 - Auditoria de Datos HBase**
-
-https://github.com/user-attachments/assets/ef739b44-7a2d-4426-8136-09d28a9a2785
 
 ---
 
