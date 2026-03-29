@@ -1,0 +1,99 @@
+Pr´ actica 2: An´ alisis de Vuelos en HBase con
+HappyBase
+Integraci´ on de ETL y Modelado de Datos
+M´ aster en Big Data. Tecnolog´ ıa y Anal´ ıtica Avanzada
+12 de marzo de 2025
+´Indice
+1. Introducci´ on y Contexto 2
+2. Objetivos y Tareas de la Pr´ actica 2
+2.1. Modelado de Datos y Dise˜ no de Tablas . . . . . . . . . . . . . . . . . . . . 2
+2.2. Implementaci´ on de la ETL con HappyBase . . . . . . . . . . . . . . . . . . 3
+2.3. Consultas para Responder las Preguntas del Proyecto . . . . . . . . . . . . 3
+2.4. Entregables . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+3. Referencias y Enlaces ´Utiles 4
+4. Instrucciones para la Presentaci´ on Final 4
+1Pr´ actica Final: An´ alisis de Vuelos en HBase 2
+1. Introducci´ on y Contexto
+Contexto Empresarial:
+Ustedes forman parte del equipo de datos de Viajes+ , una empresa del sector de viajes
+que busca optimizar su an´ alisis sobre las compa˜ n´ ıas a´ ereas y los vuelos que operan en los
+EE. UU. Para ello, se cuenta con un repositorio de datos hist´ oricos que incluye ficheros
+de:
+Aeropuertos: https://dataverse.harvard.edu/file.xhtml?persistentId=doi:
+10.7910/DVN/HG7NV7/XTPZZY&version=1.0
+Compa˜ n´ ıas: https://dataverse.harvard.edu/file.xhtml?persistentId=doi:
+10.7910/DVN/HG7NV7/3NOQ6Q&version=1.0
+Rutas: https://dataverse.harvard.edu/file.xhtml?persistentId=doi:10.7910/
+DVN/HG7NV7/EIR0RA&version=1.0
+La idea es analizar estos datos para obtener informaci´ on sobre:
+Detalles individuales de aeropuertos.
+Informaci´ on detallada de vuelos por d´ ıa o mes.
+An´ alisis de rutas: duraci´ on promedio, aerol´ ınea, retrasos, y ordenaci´ on seg´ un la
+frecuencia.
+Conteo de registros en cada tabla.
+Objetivo Global:
+El ejercicio consiste en dise˜ nar un modelo de datos en HBase, implementar una ETL en
+Python utilizando la librer´ ıa HappyBase y cargar los datos transformados en HBase para
+responder a preguntas clave sobre vuelos y rutas en EE. UU.
+2. Objetivos y Tareas de la Pr´ actica
+2.1. Modelado de Datos y Dise˜ no de Tablas
+Antes de cargar los datos, es esencial analizar los ficheros y definir el modelo de datos.
+Para ello, deber´ an:
+a.Revisi´ on de los Datasets: Examinen los ficheros de aeropuertos, compa˜ n´ ıas y
+rutas para identificar las entidades y relaciones.
+b.Definici´ on del Modelo: Determinen qu´ e preguntas se deben responder (por ejem-
+plo, obtener el detalle de un aeropuerto dado su c´ odigo, consultar vuelos por fecha,
+analizar rutas seg´ un retrasos, etc.) y dise˜ nen un modelo que contemple:
+RowKeys: Estrategias para un dise˜ no eficiente (concatenaci´ on simple, salting,
+timestamp inverso o composite rowkeys).
+Column Families: Agrupar columnas relacionadas (por ejemplo, datos basicos ,
+vuelos ,rutas ,auditoria ).Pr´ actica Final: An´ alisis de Vuelos en HBase 3
+2.2. Implementaci´ on de la ETL con HappyBase
+Se desarrollar´ a un script en Python que realice las siguientes tareas:
+1.Lectura de Ficheros: El script deber´ a leer los ficheros CSV o JSON de los datasets
+proporcionados.
+2.Transformaci´ on de Datos: Convertir cada fila del fichero en un registro de HBase
+siguiendo el modelo definido. Es crucial definir correctamente la RowKey y organizar
+los datos en las Column Families adecuadas.
+3.Carga de Datos: Generar y ejecutar las instrucciones pututilizando la librer´ ıa
+HappyBase para cargar los datos en HBase.
+2.3. Consultas para Responder las Preguntas del Proyecto
+Las preguntas que deben resolverse son:
+1.Aeropuertos: Dado un c´ odigo de aeropuerto, obtener todos sus atributos y permitir
+la proyecci´ on de atributos espec´ ıficos.
+2.Vuelos: Obtener los vuelos de un d´ ıa o mes espec´ ıfico (YYYYMMDD o YYYYMM),
+retornando hora de salida, hora de llegada, n´ umero de vuelo, origen, destino, n´ umero
+de aeronave y distancia recorrida.
+3.Rutas: Dada una clave compuesta por origen-destino, obtener:
+a. Duraci´ on promedio del vuelo.
+b. Nombre de la aerol´ ınea que ofrece la ruta, media de retraso en la salida y
+llegada.
+c. Ordenar los resultados para que las aerol´ ıneas con mayor frecuencia aparezcan
+primero.
+4.Conteo de Registros: Comprobar el conteo de registros en cada tabla y verificar
+que se han cargado todos los datos del fichero.
+5.Optimizaci´ on de la Carga: Proponer estrategias para optimizar la carga de datos
+(por ejemplo, uso de batch puts, paralelizaci´ on, etc.).
+2.4. Entregables
+Cada grupo deber´ a entregar:
+Scripts de creaci´ on de tablas en HBase.
+Documento descriptivo del modelo de datos dise˜ nado.
+Reporte de problemas y retos surgidos durante la pr´ actica.
+Scripts de Python utilizados para la carga de datos, con documentaci´ on del c´ odigo.
+Una presentaci´ on de 5 minutos (m´ aximo) explicando la soluci´ on adoptada y los
+aprendizajes obtenidos.Pr´ actica Final: An´ alisis de Vuelos en HBase 4
+3. Referencias y Enlaces ´Utiles
+Dataset de Aeropuertos: https://dataverse.harvard.edu/file.xhtml?persistentId=
+doi:10.7910/DVN/HG7NV7/XTPZZY&version=1.0
+Dataset de Compa˜ n´ ıas: https://dataverse.harvard.edu/file.xhtml?persistentId=
+doi:10.7910/DVN/HG7NV7/3NOQ6Q&version=1.0
+Dataset de Rutas: https://dataverse.harvard.edu/file.xhtml?persistentId=
+doi:10.7910/DVN/HG7NV7/EIR0RA&version=1.0
+HappyBase Documentation: https://happybase.readthedocs.io/en/latest/
+HBase Reference Guide: https://hbase.apache.org/book.html
+4. Instrucciones para la Presentaci´ on Final
+Cada grupo dispondr´ a de 5 minutos para presentar:
+La soluci´ on adoptada para el modelo de datos.
+El script ETL desarrollado en Python con HappyBase.
+Los principales retos y c´ omo se resolvieron.
+Los resultados de las consultas y c´ omo se obtuvieron los insights.
