@@ -9,6 +9,7 @@ Cumple con el requerimiento 4 del proyecto.
 
 import happybase
 import sys
+import time
 
 HBASE_HOST = 'localhost'
 
@@ -25,9 +26,9 @@ def query4_conteos(conn: happybase.Connection):
         conn (happybase.Connection): Conexión activa a HBase.
     """
     print(f"\n=======================================================")
-    print(f"Q4: Auditoría de Conteo de registros en HBase")
-    print(f"    (usando KeyOnlyFilter() para evitar transferir valores)")
-    print(f"=======================================================")
+    print(f"Q4 - Auditoría de Conteo de registros en HBase")
+    print(f"(usando KeyOnlyFilter() para evitar transferir valores)")
+    print(f"=======================================================\n")
     tables = [b'aeropuertos', b'companias', b'rutas', b'vuelos']
     for t in tables:
         try:
@@ -37,14 +38,17 @@ def query4_conteos(conn: happybase.Connection):
             print(f"> Tabla '{t.decode()}': {count:,} registros almacenados.".replace(',', '.'))
         except Exception as e:
             print(f"> Error al acceder a tabla '{t.decode()}': {e}")
-    print("=======================================================\n")
+    print("\n")
 
 if __name__ == "__main__":
     print("Iniciando barrido de tablas. Para la tabla 'vuelos' esto puede tardar unos minutos...")
     try:
         connection = get_connection()
+        start_time = time.time()
         query4_conteos(connection)
+        end_time = time.time()
         connection.close()
+        print(f"Tiempo de ejecución total: {round(end_time - start_time, 4)} segundos")
     except Exception as e:
         print(f"Error fatal conectando a HBase: {e}")
         sys.exit(1)

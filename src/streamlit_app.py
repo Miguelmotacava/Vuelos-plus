@@ -83,8 +83,8 @@ routes_index = get_routes_index()
 
 st.set_page_config(page_title="HBase Flights Dashboard", layout="wide")
 
-st.title("Panel de Vuelos (HBase)")
-st.markdown("Plataforma interactiva para el analisis de la base de datos de **Viajes+**.")
+st.title("Panel de Vuelos HBase")
+st.markdown("Plataforma interactiva para el analisis de la base de datos de Viajes+.")
 
 def test_connection():
     try:
@@ -101,7 +101,7 @@ test_connection()
 st.sidebar.title("Navegacion")
 opciones = [
     "1. Detalles del Aeropuerto",
-    "2. Vuelos por Fecha",
+    "2. Seguimiento de Vuelos",
     "3. Analisis de Rutas",
     "4. Auditoria de Datos",
 ]
@@ -172,169 +172,207 @@ if seleccion == opciones[0]:
         except Exception as e:
             st.error(f"Error de conexion con HBase (Posible sobrecarga): {e}")
 
+
 # ==============================================================
-# Q2 - VUELOS POR FECHA
+# Q2 - SEGUIMIENTO DE VUELOS
 # ==============================================================
 elif seleccion == opciones[1]:
-    st.header("Q2 - Vuelos por Fecha")
+    st.header("Q2 - Seguimiento de Vuelos")
     st.markdown(
-        "Busca vuelos por **mes** (`YYYYMM`) o **dia exacto** (`YYYYMMDD`). "
-        "La consulta usa un `row_prefix scan` sobre la RowKey `YYYYMMDD_Origin_Dest_Carrier_FlightNum`. "
-        "Opcionalmente puedes filtrar por aeropuerto de origen."
+        "Busqueda flexible de vuelos por fecha y aeropuerto. "
+        "Permite filtrar por cualquier combinacion de parametros utilizando tecnicas de filtrado en servidor."
     )
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        year_sel = st.selectbox("Año:", ["Todos", "2008"])
+        year_sel = st.selectbox("Año:", ["Todos", "2008"], index=1)
     with col2:
-        meses_nombres = ["Todos", "01 - Enero", "02 - Febrero", "03 - Marzo", "04 - Abril",
-                         "05 - Mayo", "06 - Junio", "07 - Julio", "08 - Agosto",
-                         "09 - Septiembre", "10 - Octubre", "11 - Noviembre", "12 - Diciembre"]
-        month_sel = st.selectbox("Mes:", meses_nombres)
+        meses_q2 = ["Todos"] + [str(i).zfill(2) for i in range(1, 13)]
+        month_sel = st.selectbox("Mes:", meses_q2)
     with col3:
-        dias_lista = ["Todos"] + [str(i).zfill(2) for i in range(1, 32)]
-        day_sel = st.selectbox("Dia:", dias_lista)
+        dias_q2 = ["Todos"] + [str(i).zfill(2) for i in range(1, 32)]
+        day_sel = st.selectbox("Dia:", dias_q2)
 
-    # Selector de aeropuerto de origen (opcional) — busqueda por nombre o IATA
-    origen_q2 = st.selectbox(
-        "Aeropuerto de origen (filtro opcional):",
-        options=[None] + iata_list,
-        index=0,
-        format_func=lambda x: "Todos" if x is None else x,
-        placeholder="Escribe el nombre o codigo IATA...",
-        help="Si seleccionas un aeropuerto, solo se mostraran los vuelos que partan de el."
-    )
+    col_orig, col_dest = st.columns(2)
+    with col_orig:
+        origen_q2 = st.selectbox(
+            "Origen:",
+            options=[None] + iata_list,
+            index=0,
+            format_func=lambda x: "Todos" if x is None else x,
+            placeholder="Salida..."
+        )
+    with col_dest:
+        destino_q2 = st.selectbox(
+            "Destino:",
+            options=[None] + iata_list,
+            index=0,
+            format_func=lambda x: "Todos" if x is None else x,
+            placeholder="Llegada..."
+        )
 
     limite = st.number_input(
-        "Limite de resultados a mostrar (num. de vuelos):",
-        min_value=1, max_value=5000, value=100
+        "Numero de resultados a mostrar:",
+        min_value=1, max_value=1000, value=10
     )
 
-    if st.button("Buscar Vuelos"):
+    if st.button("Ejecutar Consulta"):
+        # Construccion dinamica del prefijo y filtros
         prefix = ""
+        filters = []  # type: list[str]
+        
+        # El prefijo solo es util si el Año esta definido
         if year_sel != "Todos":
-            prefix += year_sel
+            prefix = year_sel
             if month_sel != "Todos":
-                prefix += month_sel.split(" - ")[0]
+                prefix += month_sel
                 if day_sel != "Todos":
                     prefix += day_sel
-
-        if prefix == "":
-            st.warning("Selecciona al menos un Año para iniciar la busqueda (ej. 2008).")
         else:
-            filtro_origen = None if origen_q2 is None else origen_q2.split(" - ")[0].strip()
-            # Si hay filtro de origen pedimos más filas al scan para compensar
-            # las que se descartarán en el filtrado posterior.
-            scan_limit = limite if filtro_origen is None else limite * 20
-            with st.spinner(f"Buscando en HBase con el prefijo '{prefix}'..."):
-                try:
-                    conn = happybase.Connection(HBASE_HOST, port=9090)
-                    table = conn.table('vuelos')
-                    scanner = table.scan(row_prefix=prefix.encode('utf-8'), limit=scan_limit)
-                    airport_coords = get_airport_coords()
+            # Si no hay año, usamos regex para mes/dia si estan presentes
+            if month_sel != "Todos":
+                filters.append(f"RowFilter(=, 'regexstring:^.{{4}}{month_sel}')")
+            if day_sel != "Todos":
+                filters.append(f"RowFilter(=, 'regexstring:^.{{6}}{day_sel}')")
 
-                    vuelos = []
-                    map_data = []
-                    for key, data in scanner:
-                        origen_vuelo = data.get(b'route:Origin', b'').decode()
-                        destino_vuelo = data.get(b'route:Dest', b'').decode()
-                        # Filtrar por aeropuerto de origen si se ha seleccionado uno
-                        if filtro_origen and origen_vuelo != filtro_origen:
-                            continue
-                        dist_millas_str = data.get(b'route:Distance', b'').decode()
+        # Filtro de origen (posicion exacta 9 en la RowKey)
+        if origen_q2:
+            iata_orig = str(origen_q2.split(" - ")[0].strip())
+            filters.append(f"RowFilter(=, 'regexstring:^.{{9}}{iata_orig}')")
+
+        # Filtro de destino (posicion exacta 13 en la RowKey)
+        if destino_q2:
+            iata_dest = str(destino_q2.split(" - ")[0].strip())
+            filters.append(f"RowFilter(=, 'regexstring:^.{{13}}{iata_dest}')")
+
+        final_filter = " AND ".join(filters) if filters else None
+
+        with st.spinner("Procesando consulta en HBase..."):
+            try:
+                conn = happybase.Connection(HBASE_HOST, port=9090)
+                table = conn.table('vuelos')
+                table_companias = conn.table('companias')
+                
+                # Agrupamos filtros con parentesis para mayor estabilidad si hay multiples
+                final_filter_str = None
+                if filters:
+                    wrapped_filters = [f"({f})" for f in filters]
+                    final_filter_str = " AND ".join(wrapped_filters)
+
+                # Scan con filtros de servidor
+                scanner = table.scan(
+                    row_prefix=prefix.encode() if prefix else None,
+                    filter=final_filter_str.encode() if final_filter_str else None,
+                    limit=limite
+                )
+                
+                airport_coords = get_airport_coords()
+                vuelos_lista = []
+                geodata = []
+                carrier_names = {}
+
+                for key, data in scanner:
+                    try:
+                        row_key = key.decode()
+                        orig = data.get(b'route:Origin', b'').decode().strip()
+                        dest = data.get(b'route:Dest', b'').decode().strip()
+                        tail_num = data.get(b'info:TailNum', b'').decode().strip()
+                        dist_mi = data.get(b'route:Distance', b'0').decode().strip()
+                        flight_num = data.get(b'info:FlightNum', b'').decode().strip()
+                        
                         try:
-                            dist_km = str(round(float(dist_millas_str) * 1.60934, 2))
-                        except Exception:
-                            dist_km = ""
+                            km = round(float(dist_mi) * 1.609, 2)
+                        except:
+                            km = 0.0
 
-                        def format_hhmm(t_str):
-                            if not t_str or t_str == 'nan': return '--:--'
-                            t = t_str.split('.')[0].zfill(4)
-                            return f"{t[:2]}:{t[2:]}" if len(t) == 4 else t_str
-                            
-                        hora_salida = format_hhmm(data.get(b'time:DepTime', b'').decode())
-                        hora_llegada = format_hhmm(data.get(b'time:ArrTime', b'').decode())
-                        
-                        def calc_duracion(dep, arr):
-                            if dep == '--:--' or arr == '--:--': return "N/A"
-                            try:
-                                h_d, m_d = map(int, dep.split(':'))
-                                h_a, m_a = map(int, arr.split(':'))
-                                dif = (h_a * 60 + m_a) - (h_d * 60 + m_d)
-                                if dif < 0: dif += 24 * 60
-                                return f"{dif // 60}h {dif % 60}m"
-                            except Exception:
-                                return "N/A"
-                                
-                        duracion = calc_duracion(hora_salida, hora_llegada)
-
-                        vuelos.append({
-                            "Clave Unica (RowKey)":   key.decode(),
-                            "Origen (IATA)":          origen_vuelo,
-                            "Destino (IATA)":         destino_vuelo,
-                            "Hora de Salida":         hora_salida,
-                            "Hora de Llegada":        hora_llegada,
-                            "Duracion (Estimada)":    duracion,
-                            "Num. de Vuelo":          data.get(b'info:FlightNum', b'').decode(),
-                            "Matricula (Aeronave)":   data.get(b'info:TailNum', b'').decode(),
-                            "Distancia (Millas)":     dist_millas_str,
-                            "Distancia (Km)":         dist_km,
-                        })
-                        
-                        # Extraer coodenadas para el mapa
-                        c_orig = airport_coords.get(origen_vuelo)
-                        c_dest = airport_coords.get(destino_vuelo)
-                        if c_orig and c_dest:
-                            map_data.append({
-                                "start_lat": c_orig['lat'],
-                                "start_lon": c_orig['long'],
-                                "end_lat": c_dest['lat'],
-                                "end_lon": c_dest['long'],
-                                "origen": origen_vuelo,
-                                "destino": destino_vuelo
+                        if orig and dest:
+                            vuelos_lista.append({
+                                "Vuelo": flight_num,
+                                "Aeronave": tail_num,
+                                "Origen": orig,
+                                "Destino": dest,
+                                "Distancia (Millas)": dist_mi,
+                                "Distancia (Km)": km
                             })
-                            
-                        if len(vuelos) >= limite:
-                            break
-                    conn.close()
 
-                    if vuelos:
-                        df = pd.DataFrame(vuelos)
-                        st.success(f"Se muestran **{len(vuelos)}** vuelos para el prefijo `{prefix}`.")
-                        st.caption(f"Consulta HBase: `table.scan(row_prefix=b'{prefix}', limit={limite})`")
-                        st.dataframe(df, use_container_width=True)
+                            # Preparacion de datos para el mapa
+                            c_o = airport_coords.get(orig)
+                            c_d = airport_coords.get(dest)
+                            if c_o and c_d:
+                                geodata.append({
+                                    "s_lat": c_o['lat'], "s_lon": c_o['long'],
+                                    "e_lat": c_d['lat'], "e_lon": c_d['long'],
+                                    "orig": orig, "dest": dest,
+                                    "info": f"Vuelo: {flight_num}<br>Aeronave: {tail_num}<br>Distancia: {km} Km"
+                                })
+                    except Exception as row_error:
+                        # Si una fila falla, mostramos aviso tecnico ligero y continuamos con el resto
+                        st.caption(f"Aviso: Se omitio una fila por error en datos: {row_error}")
+                        continue
+
+                conn.close()
+
+                if vuelos_lista:
+                    st.success(f"Consulta finalizada. Se encontraron {len(vuelos_lista)} registros.")
+                    st.dataframe(pd.DataFrame(vuelos_lista), use_container_width=True)
+                    
+                    if geodata:
+                        st.subheader("Visualizacion de Rutas")
+                        df_geo = pd.DataFrame(geodata)
                         
-                        # Dibujar el mapa con PyDeck ArcLayer
-                        if map_data:
-                            st.subheader("Mapa Global de Rutas en esta Fecha")
-                            df_map = pd.DataFrame(map_data)
-                            midpoint = [df_map['start_lat'].mean(), df_map['start_lon'].mean()]
-                            
-                            st.pydeck_chart(pdk.Deck(
-                                map_style='mapbox://styles/mapbox/light-v9',
-                                initial_view_state=pdk.ViewState(
-                                    latitude=midpoint[0],
-                                    longitude=midpoint[1],
-                                    zoom=3,
-                                    pitch=45,
+                        # Capa de destinos para un "click" preciso en el punto final
+                        df_dest = df_geo[['e_lat', 'e_lon', 'orig', 'dest', 'info']].copy()
+                        df_dest.rename(columns={'e_lat': 'lat', 'e_lon': 'lon'}, inplace=True)
+
+                        # Usamos CartoDB Voyager (no requiere token de Mapbox y es de estilo fisico/vial)
+                        MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
+                        
+                        st.pydeck_chart(pdk.Deck(
+                            map_style=MAP_STYLE,
+                            initial_view_state=pdk.ViewState(
+                                latitude=df_geo['s_lat'].mean() if not df_geo.empty else 37.0,
+                                longitude=df_geo['s_lon'].mean() if not df_geo.empty else -95.0,
+                                zoom=3,
+                                pitch=45
+                            ),
+                            layers=[
+                                pdk.Layer(
+                                    'ArcLayer',
+                                    data=df_geo,
+                                    get_source_position='[s_lon, s_lat]',
+                                    get_target_position='[e_lon, e_lat]',
+                                    get_source_color='[180, 50, 0, 160]',
+                                    get_target_color='[0, 150, 50, 160]',
+                                    get_width=3,
+                                    pickable=True
                                 ),
-                                layers=[
-                                    pdk.Layer(
-                                        'ArcLayer',
-                                        data=df_map,
-                                        get_source_position='[start_lon, start_lat]',
-                                        get_target_position='[end_lon, end_lat]',
-                                        get_source_color='[200, 30, 0, 160]',
-                                        get_target_color='[0, 200, 30, 160]',
-                                        get_width=2,
-                                    )
-                                ],
-                                tooltip={"text": "{origen} a {destino}"}
-                            ))
-                    else:
-                        st.warning(f"No se encontraron vuelos para la fecha/mes: `{prefix}`.")
-                except Exception as e:
-                    st.error(f"Error de conexion con HBase (Posible sobrecarga): {e}")
+                                pdk.Layer(
+                                    'ScatterplotLayer',
+                                    data=df_dest,
+                                    get_position='[lon, lat]',
+                                    get_color='[0, 100, 255, 200]',
+                                    get_radius=40000,
+                                    pickable=True
+                                )
+                            ],
+                            tooltip={
+                                "html": """
+                                    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 12px; background: white; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 4px 6px rgba(0,0,0,0.1); color: #333; line-height: 1.5;">
+                                        <b style="color: #c62828; font-size: 1.1em; display: block; border-bottom: 1px solid #eee; margin-bottom: 8px; padding-bottom: 4px;">Especificaciones de la Ruta</b>
+                                        <div style="margin-top: 5px;">
+                                            <b>Origen:</b> {orig}<br/>
+                                            <b>Destino:</b> {dest}<br/>
+                                            {info}
+                                        </div>
+                                    </div>
+                                """,
+                                "style": {"backgroundColor": "transparent", "color": "white"}
+                            }
+                        ))
+                else:
+                    st.warning("No se encontraron resultados para los criterios seleccionados.")
+            except Exception as e:
+                st.error(f"Error técnico en la conexión con HBase: {e}")
 
 # ==============================================================
 # Q3 - RUTAS
@@ -412,7 +450,7 @@ elif seleccion == opciones[2]:
                 )
 
                 resultados = []
-                total_flights = 0
+                total_flights = 0.0
                 sum_airtime_peso = 0.0
                 sum_depdelay_peso = 0.0
                 sum_arrdelay_peso = 0.0
@@ -469,12 +507,12 @@ elif seleccion == opciones[2]:
                 if total_flights > 0:
                     c1, c2, c3, c4, c5 = st.columns(5)
                     c1.metric("Distancia", f"{dist_km} km" if dist_km != "N/A" else "N/A")
-                    c2.metric("Vuelos Totales", f"{int(total_flights):,} ".replace(',', '.'))
+                    c2.metric("Vuelos Totales", f"{int(total_flights):,}".replace(',', '.'))
                     c3.metric("Duración Media", f"{round(sum_airtime_peso/total_flights, 2)} min")
                     c4.metric("Retraso Salida", f"{round(sum_depdelay_peso/total_flights, 2)} min")
                     c5.metric("Retraso Llegada", f"{round(sum_arrdelay_peso/total_flights, 2)} min")
                 else:
-                    st.warning("No hay vuelos ponderables suficientes.")
+                    st.warning("No hay registros suficientes para calcular estadisticas globales.")
 
                 # --- Metricas de la aerolinea principal (la mas frecuente) ---
                 top = df_rutas.iloc[0] if not df_rutas.empty else None

@@ -1,97 +1,130 @@
 """
-Script de consulta Q2: Vuelos por Fecha en HBase.
+Script de consulta Q2: Seguimiento de Vuelos Flexible (HBase CLI).
 
-Este script escanea la tabla 'vuelos' buscando vuelos de un día o mes completo
-(YYYYMM o YYYYMMDD) aprovechando la optimización geométrica del row_prefix.
-Opcionalmente, se puede filtrar por el aeropuerto de origen.
-Cumple con el requerimiento 2 del proyecto.
+Permite realizar búsquedas filtrando por Año, Mes, Día, Origen y Destino
+usando filtros de servidor (RowFilter + regex) para máxima eficiencia.
+
+Ejemplos de uso:
+  python query2_vuelos.py --year 2008 --month 01 --day 15
+  python query2_vuelos.py --origin JFK --dest LAX --limit 20
+  python query2_vuelos.py --month 05 --origin ORD
 """
 
 import happybase
 import argparse
 import sys
+import time
 
 HBASE_HOST = 'localhost'
 
 def get_connection() -> happybase.Connection:
-    """Establece y devuelve la conexión con HBase."""
     return happybase.Connection(HBASE_HOST, port=9090)
 
 def format_hhmm(t_str: str) -> str:
-    """Convierte una hora bruta a HH:MM."""
     if not t_str or t_str == 'nan': return '--:--'
     t = t_str.split('.')[0].zfill(4)
     return f"{t[:2]}:{t[2:]}" if len(t) == 4 else t_str
 
-def query2_vuelos(conn: happybase.Connection, fecha_prefix: str, origen: str = None, limit: int = 10):
-    """
-    Busca e imprime vuelos que coinciden con un prefijo de fecha.
-    
-    Args:
-        conn (happybase.Connection): Conexión activa a HBase.
-        fecha_prefix (str): Prefijo ROWKEY de búsqueda (YYYYMMDD o YYYYMM).
-        origen (str, opcional): Filtro estricto de origen en el cliente (IATA).
-        limit (int): Número máximo de resultados a imprimir en pantalla.
-    """
-    print(f"\n=======================================================")
-    print(f"Q2: Vuelos para la fecha/mes '{fecha_prefix}'")
-    if origen:
-        print(f"Filtro aplicado -> Origen: {origen}")
-    print(f"=======================================================")
-    
-    table = conn.table('vuelos')
-    # Aumentamos el límite del scan si hay que filtrar en cliente por origen
-    scan_limit = limit * 20 if origen else limit
-    scanner = table.scan(row_prefix=fecha_prefix.encode('utf-8'), limit=scan_limit)
-    
-    count = 0
-    for key, data in scanner:
-        origen_vuelo = data.get(b'route:Origin', b'').decode()
+def query2_vuelos(year=None, month=None, day=None, origin=None, dest=None, limit=10):
+    try:
+        conn = get_connection()
+        table = conn.table('vuelos')
         
-        # Filtro en python si se solicita
-        if origen and origen_vuelo != origen:
-            continue
+        # 1. Construcción inteligente del Prefijo (solo si hay Año)
+        prefix = ""
+        filters = []
+        
+        if year:
+            prefix = str(year)
+            if month:
+                prefix += str(month).zfill(2)
+                if day:
+                    prefix += str(day).zfill(2)
+        else:
+            if month:
+                filters.append(f"RowFilter(=, 'regexstring:^.{{4}}{str(month).zfill(2)}')")
+            if day:
+                filters.append(f"RowFilter(=, 'regexstring:^.{{6}}{str(day).zfill(2)}')")
+
+        # 2. Filtros de Aeropuerto
+        if origin:
+            filters.append(f"RowFilter(=, 'regexstring:^.{{9}}{origin.upper()}')")
+        if dest:
+            filters.append(f"RowFilter(=, 'regexstring:^.{{13}}{dest.upper()}')")
+
+        # CABECERA DETALLADA SOLICITADA
+        meses_nombres = {
+            "01": "Enero", "02": "Febrero", "03": "Marzo", "04": "Abril",
+            "05": "Mayo", "06": "Junio", "07": "Julio", "08": "Agosto",
+            "09": "Septiembre", "10": "Octubre", "11": "Noviembre", "12": "Diciembre"
+        }
+
+        print("\n" + "="*70)
+        print("Q2 - Vuelos mostrados para los siguientes filtros aplicados:")
+        if year: print(f"  -> Año   : {year}")
+        if month: print(f"  -> Mes   : {month} - {meses_nombres.get(str(month).zfill(2), 'Desconocido')}")
+        if day: print(f"  -> Día   : {day}")
+        if origin: print(f"  -> Origen: {origin.upper()}")
+        if dest: print(f"  -> Destino: {dest.upper()}")
+        if not any([year, month, day, origin, dest]):
+            print("  -> (Sin filtros específicos aplicados)")
+        print("="*70 + "\n")
+
+        # 3. Combinación de filtros
+        final_filter = None
+        if filters:
+            wrapped = [f"({f})" for f in filters]
+            final_filter = " AND ".join(wrapped)
+
+        scanner = table.scan(
+            row_prefix=prefix.encode() if prefix else None,
+            filter=final_filter.encode() if final_filter else None,
+            limit=limit
+        )
+
+        count = 0
+        for key, data in scanner:
+            rk = key.decode()
+            v_orig = data.get(b'route:Origin', b'').decode().strip()
+            v_dest = data.get(b'route:Dest', b'').decode().strip()
+            v_tail = data.get(b'info:TailNum', b'').decode().strip()
+            v_num  = data.get(b'info:FlightNum', b'').decode().strip()
+            v_dist = data.get(b'route:Distance', b'0').decode().strip()
             
-        print(f" ------------------------------------")
-        print(f"  RowKey: {key.decode()}")
-        print(f"    Origen: {origen_vuelo} -> Destino: {data.get(b'route:Dest', b'').decode()}")
-        
-        h_salida = format_hhmm(data.get(b'time:DepTime', b'').decode())
-        h_llegada = format_hhmm(data.get(b'time:ArrTime', b'').decode())
-        print(f"    Hora Salida: {h_salida} | Llegada: {h_llegada}")
-        print(f"    Vuelo: {data.get(b'info:FlightNum', b'').decode()} | Aeronave: {data.get(b'info:TailNum', b'').decode()}")
-        
-        dist_millas = data.get(b'route:Distance', b'').decode()
-        try:
-            dist_km = round(float(dist_millas) * 1.60934, 2)
-            dist_str = f"{dist_millas} millas ({dist_km} km)"
-        except Exception:
-            dist_str = f"{dist_millas} millas"
+            try:
+                km = round(float(v_dist) * 1.609, 2)
+            except:
+                km = 0.0
+
+            print(f" [Vuelo: {v_num}] | [Aeronave: {v_tail}]")
+            print(f"   Ruta      : {v_orig} -> {v_dest}")
+            print(f"   Tiempos   : {format_hhmm(data.get(b'time:DepTime', b'').decode())} (Salida) / {format_hhmm(data.get(b'time:ArrTime', b'').decode())} (Llegada)")
+            print(f"   Distancia : {v_dist} millas (~{km} km)")
+            print(f"   RowKey    : {rk}")
+            print("-" * 60 + "\n")
             
-        print(f"    Distancia: {dist_str}")
-        
-        count += 1
-        if count >= limit:
-            break
-            
-    if count == 0:
-        print("-> No se encontraron vuelos para esta selección.")
-    else:
-        print(f"\nMostrando {count} registro(s) (Límite visual: {limit}).")
-    print("=======================================================\n")
+            count += 1
+
+        if count == 0:
+            print("No se encontraron resultados para los filtros aplicados.")
+        else:
+            print(f"Total: {count} registros mostrados.")
+
+        conn.close()
+    except Exception as e:
+        print(f"Error ejecutando consulta: {e}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Q2: Consultar vuelos por año/mes/día.")
-    parser.add_argument("fecha", help="Prefijo de fecha (ej. 200801 para Enero 2008, o 20080115 para un día)")
-    parser.add_argument("-o", "--origen", help="Filtrar por código IATA de origen (ej. LAX)")
-    parser.add_argument("-l", "--limit", type=int, default=5, help="Número de resultados a mostrar (por defecto: 5)")
-    
+    parser = argparse.ArgumentParser(description="Consulta Q2 Flexible en HBase.")
+    parser.add_argument("--year", help="Año (ej. 2008)")
+    parser.add_argument("--month", help="Mes (01-12)")
+    parser.add_argument("--day", help="Dia (01-31)")
+    parser.add_argument("--origin", help="IATA Origen (ej. JFK)")
+    parser.add_argument("--dest", help="IATA Destino (ej. LAX)")
+    parser.add_argument("--limit", type=int, default=10, help="Limite de resultados")
+
     args = parser.parse_args()
-    
-    try:
-        connection = get_connection()
-        query2_vuelos(connection, args.fecha, args.origen, args.limit)
-        connection.close()
-    except Exception as e:
-        print(f"Error fatal conectando a HBase: {e}")
-        sys.exit(1)
+    start_time = time.time()
+    query2_vuelos(args.year, args.month, args.day, args.origin, args.dest, args.limit)
+    end_time = time.time()
+    print(f"Tiempo de ejecución: {round(end_time - start_time, 4)} segundos")

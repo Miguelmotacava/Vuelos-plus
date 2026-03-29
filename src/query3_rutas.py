@@ -11,6 +11,7 @@ import happybase
 import argparse
 import sys
 import math
+import time
 
 HBASE_HOST = 'localhost'
 
@@ -37,7 +38,7 @@ def query3_rutas(conn: happybase.Connection, origen: str, destino: str):
         destino (str): IATA destino.
     """
     print(f"\n=======================================================")
-    print(f"Q3: Estadísticas Analíticas de Ruta {origen}-{destino}")
+    print(f"Q3 - Estadísticas Analíticas de Ruta {origen}-{destino}")
     print(f"=======================================================")
     table_rutas = conn.table('rutas')
     table_companias = conn.table('companias')
@@ -63,7 +64,7 @@ def query3_rutas(conn: happybase.Connection, origen: str, destino: str):
         dist_km = round(haversine(lat1, lon1, lat2, lon2), 2)
     except Exception:
         pass
-        
+    print(f"\nRuta: {origen} -> {destino}\n")
     print(f"Distancia Estimada (Geográfica): {dist_km} km\n")
         
     airlines_stats = {}
@@ -139,8 +140,11 @@ if __name__ == "__main__":
     
     try:
         connection = get_connection()
+        start_time = time.time()
         query3_rutas(connection, args.origen.upper(), args.destino.upper())
+        end_time = time.time()
         connection.close()
+        print(f"Tiempo de ejecución: {round(end_time - start_time, 4)} segundos")
     except Exception as e:
         print(f"Error fatal conectando a HBase: {e}")
         sys.exit(1)

@@ -9,6 +9,7 @@ Cumple con el requerimiento 1 del proyecto.
 import happybase
 import argparse
 import sys
+import time
 
 # Configuración de conexión
 HBASE_HOST = 'localhost'
@@ -28,7 +29,7 @@ def query1_aeropuerto(conn: happybase.Connection, iata_code: str, columns: list 
         columns (list, opcional): Lista de columnas en formato 'cf:col' para proyectar.
     """
     print(f"\n=======================================================")
-    print(f"Q1: Detalle del Aeropuerto {iata_code}")
+    print(f"Q1 - Detalle del Aeropuerto {iata_code}")
     if columns:
         print(f"Proyectando columnas: {columns}")
     print(f"=======================================================")
@@ -38,15 +39,27 @@ def query1_aeropuerto(conn: happybase.Connection, iata_code: str, columns: list 
     cols_encoded = [c.encode('utf-8') for c in columns] if columns else None
     row = table.row(iata_code.encode('utf-8'), columns=cols_encoded)
     
+    # Mapeo de etiquetas tecnicas a nombres legibles
+    etiquetas = {
+        'info:airport': 'Aeropuerto',
+        'info:city': 'Ciudad     ',
+        'info:country': 'País       ',
+        'info:lat': 'Latitud    ',
+        'info:long': 'Longitud   ',
+        'info:state': 'Estado     '
+    }
+    
     if row:
         for key, value in row.items():
-            print(f"  {key.decode()}: {value.decode()}")
+            k_str = key.decode()
+            label = etiquetas.get(k_str, k_str)
+            print(f"  {label} -> {value.decode()}")
     else:
         print("-> Aeropuerto no encontrado o sin datos en las columnas solicitadas.")
     print("=======================================================\n")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Q1: Consultar información de un aeropuerto.")
+    parser = argparse.ArgumentParser(description="Q1 - Consultar información de un aeropuerto.")
     parser.add_argument("iata", help="Código IATA del aeropuerto a buscar (ej. JFK)")
     parser.add_argument("-c", "--columns", nargs="+", help="Columnas a proyectar (ej. info:city info:state)")
     
@@ -54,8 +67,11 @@ if __name__ == "__main__":
     
     try:
         connection = get_connection()
+        start_time = time.time()
         query1_aeropuerto(connection, args.iata, args.columns)
+        end_time = time.time()
         connection.close()
+        print(f"Tiempo de ejecución: {round(end_time - start_time, 4)} segundos")
     except Exception as e:
         print(f"Error fatal conectando a HBase: {e}")
         sys.exit(1)
