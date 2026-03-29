@@ -238,35 +238,33 @@ Puedes iniciar una interfaz gráfica potente mediante **Streamlit**, desarrollad
 streamlit run src\streamlit_app.py
 ```
 
+A continuación se muestran las capturas de cómo se vería el streamlit ejecutado:
+
+- **Q1 - Detalles de los aeropuertos**
+
+https://github.com/user-attachments/assets/6635e5e5-6761-4a80-a53b-869b8a3b2c79
+
+
+- **Q2 - Q2 - Seguimiento de Vuelos**
+
+https://github.com/user-attachments/assets/80cc8d34-df56-4bf0-970e-71098e7fd67b
+
+
+- **Q3 - Q3 - Analisis Estadistico de Rutas**
+
+https://github.com/user-attachments/assets/51f8c6c2-df8a-4d67-9137-3c43c2fb54f0
+
+
+- **Q4 - Q4 - Auditoria de Datos HBase**
+
+https://github.com/user-attachments/assets/80cc8d34-df56-4bf0-970e-71098e7fd67b
+
+
 ### Características Exclusivas del Panel Visual
 1. **Filtros Dinámicos**: En la Pestaña Vuelos (Q2) puedes buscar por origen usando códigos IATA o por *Nombre Textual del Aeropuerto* con un combo-box.
 2. **Control Interactivo**: En la Pestaña Rutas (Q3), el selector de destino está condicionado y encriptado dinámicamente; si seleccionas un aeropuerto que no tiene destinos operados registrados en la base de datos, las opciones de "destinos vacíos" se bloquean para evitar peticiones infructuosas.
 3. **Conversión y Formateo Automático**: Genera duraciones precisas extraídas a partir de horarios crudos y convierte distancias métricas de Millas a Kms al instante.
 4. **Capas Geográficas 3D (PyDeck)**: Adicionalmente, el panel carga las coordenadas espaciales `Lat` y `Long` en HBase, e imperceptivamente traza espectaculares **arcos curvos tridimensionales** para ilustrar masivamente todos los vuelos interceptados en Q2 sobre un mapamundi.
-
-
-=======
-A continuación se muestran las capturas de cómo se vería el streamlit ejecutado:
-
-**Q1 - Detalles de los aeropuertos**
-
-https://github.com/user-attachments/assets/6635e5e5-6761-4a80-a53b-869b8a3b2c79
-
-
-**Q2 - Q2 - Seguimiento de Vuelos**
-
-https://github.com/user-attachments/assets/80cc8d34-df56-4bf0-970e-71098e7fd67b
-
-
-**Q3 - Q3 - Analisis Estadistico de Rutas**
-
-https://github.com/user-attachments/assets/51f8c6c2-df8a-4d67-9137-3c43c2fb54f0
-
-
-**Q4 - Q4 - Auditoria de Datos HBase**
-
-https://github.com/user-attachments/assets/80cc8d34-df56-4bf0-970e-71098e7fd67b
-
 
 ---
 
