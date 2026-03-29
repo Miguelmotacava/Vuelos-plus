@@ -70,6 +70,8 @@ Q1 - Detalle del Aeropuerto ATL
   Longitud    -> -84.42694444
   Estado      -> GA
 =======================================================
+
+Tiempo de ejecución: 0.0477 segundos
 ```
 
 ### Q2: Búsqueda de Vuelos por Fecha (Filtrado Row-Prefix)
@@ -159,6 +161,7 @@ Q2 - Vuelos mostrados para los siguientes filtros aplicados:
 ------------------------------------------------------------
 
 Total: 10 registros mostrados.
+Tiempo de ejecución: 0.0385 segundos
 ```
 
 ### Q3: Inteligencia y Estadísticas de Ruta
@@ -198,6 +201,7 @@ Desglose por Aerolínea:
       Retraso Salida:    26.29 mins
       Retraso Llegada:   23.61 mins
 
+Tiempo de ejecución: 0.0288 segundos
 ```
 
 ### Q4: Auditoría Inteligente de DB
@@ -220,6 +224,8 @@ Q4 - Auditoría de Conteo de registros en HBase
 > Tabla 'rutas': 4.981 registros almacenados.
 > Tabla 'vuelos': 2.389.212 registros almacenados.
 
+
+Tiempo de ejecución total: 48.705 segundos
 ```
 
 ---
