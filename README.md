@@ -282,5 +282,18 @@ Para la reproducción de este proyecto y consulta técnica, se pueden utilizar l
 
 ---
 
+---
+
+## Autores y Créditos
+
+Este proyecto ha sido desarrollado como parte de la formación en la asignatura de **Bases de Datos NoSQL** por:
+
+*   **Juan Miguel Correa**
+*   **Pedro Rodríguez**
+*   **Miguel Mota**
+
+**Marzo 2026** - Máster en Big Data y Business Analytics.
+
+Universidad Pontificia de Comillas (ICAI)
 
 
