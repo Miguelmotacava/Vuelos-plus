@@ -6,6 +6,19 @@ Su objetivo es almacenar, procesar y consultar de forma ultra-rápida y estructu
 
 ---
 
+## Estructura del Proyecto
+
+El repositorio está organizado de la siguiente manera:
+
+- **`src/`**: Contiene el núcleo de la lógica en Python (ETL, scripts de consulta CLI y la aplicación Streamlit).
+- **`data/`**: Directorio para los archivos CSV (Airports, Carriers y Vuelos). *Nota: Los archivos pesados están omitidos en Git.*
+- **`docs/`**: Documentación técnica, enunciados de la práctica y material teórico sobre Apache HBase.
+- **`informe/`**: Contiene el reporte final de la práctica en formato PDF y sus fuentes LaTeX.
+- **`docker-compose.yml`**: Configuración para levantar el ecosistema de HBase, Thrift y Zookeeper mediante contenedores.
+- **`requirements.txt`**: Listado de dependencias de Python necesarias para ejecutar el proyecto.
+
+---
+
 ## Requisitos e Instalación
 
 1. **Python 3.10+**.
