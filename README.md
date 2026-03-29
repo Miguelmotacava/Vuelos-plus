@@ -244,25 +244,8 @@ streamlit run src\streamlit_app.py
 3. **Conversión y Formateo Automático**: Genera duraciones precisas extraídas a partir de horarios crudos y convierte distancias métricas de Millas a Kms al instante.
 4. **Capas Geográficas 3D (PyDeck)**: Adicionalmente, el panel carga las coordenadas espaciales `Lat` y `Long` en HBase, e imperceptivamente traza espectaculares **arcos curvos tridimensionales** para ilustrar masivamente todos los vuelos interceptados en Q2 sobre un mapamundi.
 
-<<<<<<< HEAD
+
 =======
----
-
-## Referencias y Enlaces Útiles
-
-Para la reproducción de este proyecto y consulta técnica, se pueden utilizar los siguientes recursos:
-
-- **Datasets Originales (Harvard Dataverse):**
-    - [Dataset de Aeropuertos](https://dataverse.harvard.edu/file.xhtml?persistentId=doi:10.7910/DVN/HG7NV7/XTPZZY&version=1.0)
-    - [Dataset de Compañías](https://dataverse.harvard.edu/file.xhtml?persistentId=doi:10.7910/DVN/HG7NV7/3NOQ6Q&version=1.0)
-    - [Dataset de Rutas](https://dataverse.harvard.edu/file.xhtml?persistentId=doi:10.7910/DVN/HG7NV7/EIR0RA&version=1.0)
-- **Documentación Técnica:**
-    - [HappyBase Documentation](https://happybase.readthedocs.io/en/latest/)
-    - [HBase Reference Guide](https://hbase.apache.org/book.html)
-
----
-
->>>>>>> 3ba8f8b (Finalizing HBase project: Updated README with dataset references, added execution timers to all queries, and humanized CLI outputs.)
 A continuación se muestran las capturas de cómo se vería el streamlit ejecutado:
 
 **Q1 - Detalles de los aeropuertos**
@@ -295,9 +278,24 @@ https://github.com/user-attachments/assets/80cc8d34-df56-4bf0-970e-71098e7fd67b
 https://github.com/user-attachments/assets/51f8c6c2-df8a-4d67-9137-3c43c2fb54f0
 
 **Q4 - Auditoria de Datos HBase**
->>>>>>> 3ba8f8b (Finalizing HBase project: Updated README with dataset references, added execution timers to all queries, and humanized CLI outputs.)
 
 https://github.com/user-attachments/assets/ef739b44-7a2d-4426-8136-09d28a9a2785
+
+---
+
+## Referencias y Enlaces Útiles
+
+Para la reproducción de este proyecto y consulta técnica, se pueden utilizar los siguientes recursos:
+
+- **Datasets Originales (Harvard Dataverse):**
+    - [Dataset de Aeropuertos](https://dataverse.harvard.edu/file.xhtml?persistentId=doi:10.7910/DVN/HG7NV7/XTPZZY&version=1.0)
+    - [Dataset de Compañías](https://dataverse.harvard.edu/file.xhtml?persistentId=doi:10.7910/DVN/HG7NV7/3NOQ6Q&version=1.0)
+    - [Dataset de Rutas](https://dataverse.harvard.edu/file.xhtml?persistentId=doi:10.7910/DVN/HG7NV7/EIR0RA&version=1.0)
+- **Documentación Técnica:**
+    - [HappyBase Documentation](https://happybase.readthedocs.io/en/latest/)
+    - [HBase Reference Guide](https://hbase.apache.org/book.html)
+
+---
 
 
 
