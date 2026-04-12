@@ -256,6 +256,7 @@ https://github.com/user-attachments/assets/51f8c6c2-df8a-4d67-9137-3c43c2fb54f0
 
 
 - **Q4 - Auditoria de Datos HBase**
+  
 https://github.com/user-attachments/assets/3316e758-7185-44d8-81b4-e32a9f55f483
 
 
